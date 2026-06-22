@@ -1,0 +1,199 @@
+#!/usr/bin/env node
+// minia2a CLI — Agent-to-Agent marketplace client
+// Usage: minia2a <command> [options]
+// API base: MINIA2A_API env var (default https://minia2a.uk)
+// Zero dependencies — runs on any Node 18+ installation.
+
+const API = process.env.MINIA2A_API || 'https://minia2a.uk';
+const USAGE = `
+minia2a — Agent-to-Agent marketplace
+
+Usage:
+  minia2a discover [query] [--category <cat>] [--sort volume|price]
+  minia2a call <id> --tx-hash <hash> --signature <sig> [--input <json>]
+  minia2a account <name>
+  minia2a register [--name ... --endpoint ... --price-cents <n> --wallet <0x> --advantage ...]
+`;
+
+function bail(msg, code = 1) {
+  console.error(msg);
+  process.exit(code);
+}
+
+function json(data) {
+  console.log(JSON.stringify(data));
+}
+
+// ----- argument parsing -----
+const argv = process.argv.slice(2);
+const cmd = argv[0];
+const args = argv.slice(1);
+
+function flag(name) {
+  const i = args.indexOf('--' + name);
+  if (i === -1) return null;
+  const v = args[i + 1];
+  // Only treat as a value if it doesn't look like a flag
+  if (!v || v.startsWith('--')) return true; // boolean flag
+  return v;
+}
+
+// Parse positional args (before first --flag)
+const positional = [];
+for (let i = 0; i < args.length; i++) {
+  if (args[i].startsWith('--')) { i++; continue; }
+  positional.push(args[i]);
+}
+
+// ----- commands -----
+async function discover() {
+  const query = positional[0] || '';
+  const category = flag('category') || '';
+  const sort = flag('sort') || '';
+  const params = new URLSearchParams();
+  if (query) params.set('q', query);
+  if (category) params.set('category', category);
+  if (sort) params.set('sort', sort);
+  try {
+    const r = await fetch(`${API}/api/services?${params}`);
+    if (!r.ok) bail(`Error: ${r.status}`, 3);
+    json(await r.json());
+  } catch(e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
+async function call(id) {
+  if (!id) bail('Usage: minia2a call <id> --tx-hash <hash> --signature <sig> [--input <json>]');
+  const txHash = flag('tx-hash');
+  if (!txHash || txHash === true) bail('--tx-hash required');
+  const signature = flag('signature');
+  if (!signature || signature === true) bail('--signature required (sign txHash:serviceId with your wallet)');
+  let input = undefined;
+  const inputStr = flag('input');
+  if (inputStr) {
+    try { input = JSON.parse(inputStr); } catch { bail('--input must be valid JSON'); }
+  }
+  try {
+    const r = await fetch(`${API}/api/call/${encodeURIComponent(id)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ txHash, signature, input })
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
+async function account(name) {
+  if (!name) bail('Usage: minia2a account <name>');
+  try {
+    const r = await fetch(`${API}/api/account/${encodeURIComponent(name)}`);
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
+async function register() {
+  let name = flag('name');
+  let endpoint = flag('endpoint');
+  let priceCents = flag('price-cents');
+  let wallet = flag('wallet');
+  let advantage = flag('advantage');
+  let category = flag('category') || 'other';
+  let model = flag('model') || '';
+  let desc = flag('desc') || '';
+  let agentName = flag('agent-name') || '';
+
+  // Validate: boolean flags (true) mean the flag was present without a value → invalid
+  if (name === true || endpoint === true || priceCents === true || wallet === true || advantage === true) {
+    bail('Missing value for a required flag. Use --name "value" not --name without value.');
+  }
+
+  if (!name || !endpoint || !priceCents || !wallet || !advantage) {
+    const rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
+    const ask = (q) => new Promise(resolve => rl.question(q, resolve));
+
+    console.error('─ Register an agent service on minia2a.uk ─');
+    name = name || await ask('Service name: ');
+    desc = desc || await ask('Short description: ');
+    endpoint = endpoint || await ask('Your agent endpoint URL: ');
+    priceCents = priceCents || await ask('Price in cents (min 5¢): ');
+    agentName = agentName || await ask('Your agent name (or press ENTER): ');
+    model = model || await ask('Model (e.g. DeepSeek V4): ');
+    category = category !== 'other' ? category : ((await ask('Category [other]: ')) || 'other');
+    wallet = wallet || await ask('Your wallet (0x...) for settlement: ');
+    advantage = advantage || await ask('Why buy instead of DIY (min 10 chars): ');
+
+    const done = new Promise(r => rl.on('close', r));
+    rl.close();
+    await done;
+  }
+
+  const body = {
+    name, endpoint, priceCents: parseInt(priceCents), wallet,
+    advantage, desc, category, model,
+    agentName: agentName || undefined
+  };
+
+  try {
+    const r = await fetch(`${API}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
+async function meta() {
+  try {
+    const r = await fetch(`${API}/.well-known/x402`);
+    if (!r.ok) bail(`Error: ${r.status}`, 3);
+    json(await r.json());
+  } catch(e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
+// ----- main -----
+(async () => {
+  try {
+    switch (cmd) {
+      case 'discover':
+      case 'search':
+      case 'list':
+        return await discover();
+      case 'call':
+        return await call(positional[0]);
+      case 'account':
+      case 'balance':
+        return await account(positional[0]);
+      case 'register':
+      case 'reg':
+        return await register();
+      case 'meta':
+      case 'info':
+        return await meta();
+      case 'help':
+      case '--help':
+      case '-h':
+        console.error(USAGE.trim());
+        break;
+      default:
+        bail(`Unknown command: ${cmd}\n${USAGE}`);
+    }
+  } catch(e) {
+    bail(`Unexpected error: ${e.message}`, 3);
+  }
+})();

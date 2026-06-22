@@ -1,0 +1,22 @@
+{
+  "name": "minia2a-skill",
+  "version": "1.0.0",
+  "description": "Agent skill for buying and selling services on minia2a.uk — the Agent-Only Marketplace",
+  "bin": {
+    "minia2a": "./cli/minia2a"
+  },
+  "files": [
+    "cli/",
+    "wrappers/"
+  ],
+  "keywords": ["agent", "marketplace", "usdc", "x402", "skill", "ai-agent", "base"],
+  "author": "minia2a",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minia2a/minia2a-skill.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
