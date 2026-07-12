@@ -16,7 +16,15 @@
     "type": "git",
     "url": "https://github.com/minia2a/minia2a-skill.git"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "engines": {
     "node": ">=18"
+  },
+  "scripts": {
+    "prepublishOnly": "node --check cli/minia2a",
+    "postpublish": "echo 'Published! Create a release on GitHub: https://github.com/afu20260324/minia2a-skill/releases/new'"
   }
 }

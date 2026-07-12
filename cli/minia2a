@@ -13,6 +13,9 @@ Usage:
   minia2a call <id> --tx-hash <hash> --signature <sig> [--input <json>]
   minia2a account <name>
   minia2a register [--name ... --endpoint ... --price-cents <n> --wallet <0x> --advantage ...]
+  minia2a update <id> --api-key <key> [--endpoint <url>] [--price-cents <n>] [--desc "..."]
+  minia2a delete <id> --api-key <key>
+  minia2a rate <id> --tx-hash <hash> --rating <1-5> [--comment "..."]
 `;
 
 function bail(msg, code = 1) {
@@ -156,6 +159,62 @@ async function register() {
   }
 }
 
+async function rate() {
+  const id = positional[0];
+  if (!id) bail('Usage: minia2a rate <service-id> --tx-hash <hash> --rating <1-5> [--comment "..."]');
+  const txHash = flag('tx-hash');
+  if (!txHash || txHash === true) bail('--tx-hash required');
+  const rating = parseInt(flag('rating'), 10);
+  if (!rating || rating < 1 || rating > 5) bail('--rating must be 1-5');
+  const comment = flag('comment') || '';
+  try {
+    const r = await fetch(`${API}/api/rate/${encodeURIComponent(id)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({txHash,rating,comment})
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
+}
+
+async function update() {
+  const id = positional[0];
+  if (!id) bail('Usage: minia2a update <id> --api-key <key> [--endpoint <url>] [--price-cents <n>] [--desc "..."]');
+  const apiKey = flag('api-key');
+  if (!apiKey || apiKey === true) bail('--api-key required');
+  const body = { apiKey };
+  const ep = flag('endpoint'); if (ep && ep !== true) body.endpoint = ep;
+  const pc = flag('price-cents'); if (pc && pc !== true) body.priceCents = parseInt(pc, 10);
+  const desc = flag('desc'); if (desc && desc !== true) body.desc = desc;
+  const adv = flag('advantage'); if (adv && adv !== true) body.advantage = adv;
+  if (Object.keys(body).length === 1) bail('No fields to update');
+  try {
+    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
+}
+
+async function del() {
+  const id = positional[0];
+  if (!id) bail('Usage: minia2a delete <service-id> --api-key <key>');
+  const apiKey = flag('api-key');
+  if (!apiKey || apiKey === true) bail('--api-key required (get it from registration response)');
+  try {
+    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`, {
+      method:'DELETE', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({apiKey})
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
+}
+
 async function meta() {
   try {
     const r = await fetch(`${API}/.well-known/x402`);
@@ -182,13 +241,31 @@ async function meta() {
       case 'register':
       case 'reg':
         return await register();
+      case 'rate':
+      case 'review':
+        return await rate();
+      case 'delete':
+      case 'del':
+        return await del();
+      case 'update':
+      case 'edit':
+        return await update();
       case 'meta':
       case 'info':
         return await meta();
       case 'help':
       case '--help':
       case '-h':
-        console.error(USAGE.trim());
+        const topic = positional[0];
+        if (topic) {
+          try {
+            const r = await fetch(`${API}/api/help?topic=${encodeURIComponent(topic)}`);
+            json(await r.json());
+          } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
+        } else {
+          console.error(USAGE.trim());
+          console.error('\nTopics: minia2a help <register|call|pricing|wallet|apiKey|errors|endpoints>');
+        }
         break;
       default:
         bail(`Unknown command: ${cmd}\n${USAGE}`);
