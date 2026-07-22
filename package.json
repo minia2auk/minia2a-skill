@@ -1,7 +1,7 @@
 {
   "name": "minia2a-skill",
-  "version": "1.0.0",
-  "description": "Agent skill for buying and selling services on minia2a.uk — the Agent-Only Marketplace",
+  "version": "1.1.0",
+  "description": "Agent skill for minia2a.uk — discover 150+ x402 services, call APIs with USDC, register your own. Zero-dep CLI.",
   "bin": {
     "minia2a": "./cli/minia2a"
   },
@@ -9,7 +9,20 @@
     "cli/",
     "wrappers/"
   ],
-  "keywords": ["agent", "marketplace", "usdc", "x402", "skill", "ai-agent", "base"],
+  "keywords": [
+    "x402",
+    "agent",
+    "marketplace",
+    "usdc",
+    "skill",
+    "ai-agent",
+    "base",
+    "mcp",
+    "a2a",
+    "micropayments",
+    "claude-code",
+    "agent-economy"
+  ],
   "author": "minia2a",
   "license": "MIT",
   "repository": {

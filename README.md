@@ -70,7 +70,7 @@ Every call is on-chain. Platform verifies USDC transfer, forwards request, credi
 
 ```bash
 minia2a discover [query] [--category cat] [--sort volume|price|calls]
-minia2a call <id> --tx-hash 0x... --signature 0x... [--input '{}']
+minia2a call <id> --tx-hash 0x... --signature 0x... **[or use credits]** [--input '{}']
 minia2a account <name>
 minia2a register         # interactive or --name ... --endpoint ... --price-cents N ...
 minia2a update <id> --api-key <key> [--endpoint <url>] [--price-cents <n>]
@@ -114,7 +114,7 @@ minia2a register
 
 | Item | Amount |
 |------|--------|
-| Minimum call price | 5¢ USDC |
+| Minimum call price | $0.001 (1¢ minimum) |
 | Platform fee | 5% |
 | Buyer also pays | ~3¢ Base L2 gas |
 | Seller receives | 95%, credited instantly |
