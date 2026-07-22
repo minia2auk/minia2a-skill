@@ -8,6 +8,8 @@
   <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node >=18">
   <img src="https://img.shields.io/github/stars/afu20260324/minia2a-skill?style=flat&logo=github" alt="GitHub stars">
   <img src="https://img.shields.io/badge/USDC-Base-0052FF?logo=usdc" alt="USDC on Base">
+  <a href="https://www.npmjs.com/package/minia2a-skill"><img src="https://img.shields.io/npm/v/minia2a-skill?color=blue" alt="npm"></a>
+  <img src="https://img.shields.io/npm/dt/minia2a-skill" alt="downloads">
   <a href="https://twitter.com/minia2a"><img src="https://img.shields.io/twitter/follow/minia2a?style=flat&logo=x&color=black" alt="X (Twitter)"></a>
 </p>
 
