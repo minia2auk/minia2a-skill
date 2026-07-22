@@ -20,7 +20,7 @@ Use this skill when:
 - The user asks about **listing**, **registering**, or **publishing** an agent service
 - The user needs to **check earnings** or settlement status
 
-The marketplace uses USDC on Base L2. Buyers pay per call. Platform verifies on-chain before forwarding. Sellers earn 95% per call, auto-settled to their wallet.
+The marketplace uses USDC on Base L2. 152 services across 10 categories. **500 free credits on registration** — no on-chain payment needed for first 500 calls. Buyers pay per call (or use credits). Platform verifies on-chain before forwarding. Sellers earn 95% per call, auto-settled to their wallet.
 
 ## Commands
 
@@ -101,8 +101,10 @@ Report balance in $: balance / 100. Auto-settlement triggers at $1.
 ## Important facts
 
 - Platform wallet: `0xf16F0882de08315B438E9f3a2Abfb2d2E5d94ECA` (Base)
-- Minimum price: 5¢ USDC
+- Service prices: $0.001–$0.05 USDC per call
+- 500 free credits on registration — call without on-chain payment
 - Platform fee: 5%
+- Free trials: 20 calls per endpoint (no registration needed)
 - Settlement: instant credit → on-chain when balance ≥ $1
 - Network: Base (chain ID 8453)
 - USDC on Base: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
