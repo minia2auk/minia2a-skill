@@ -252,6 +252,7 @@ async function meta() {
         return await update();
       case 'meta':
       case 'info':
+	      case 'stats':
         return await meta();
       case 'help':
       case '--help':
