@@ -1,7 +1,7 @@
 {
   "name": "minia2a-skill",
-  "version": "1.1.4",
-  "description": "Agent skill for minia2a.uk — discover 152+ x402 services, call APIs with USDC, register your own. Zero-dep CLI. 500 free credits.",
+  "version": "1.1.6",
+  "description": "Agent skill for minia2a.uk — discover 153+ x402 services, call APIs with USDC, register your own. Zero-dep CLI. 500 free credits.",
   "bin": {
     "minia2a": "./cli/minia2a"
   },
@@ -27,7 +27,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/minia2a/minia2a-skill.git"
+    "url": "git+https://github.com/afu20260324/minia2a-skill.git"
+  },
+  "homepage": "https://github.com/afu20260324/minia2a-skill#readme",
+  "bugs": {
+    "url": "https://github.com/afu20260324/minia2a-skill/issues"
   },
   "publishConfig": {
     "access": "public",
