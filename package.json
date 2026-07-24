@@ -1,7 +1,7 @@
 {
   "name": "minia2a-skill",
-  "version": "1.1.7",
-  "description": "Agent skill for minia2a.uk — 159 x402 services, USDC micropayments, 500 free credits. Zero-dep CLI.",
+  "version": "1.1.8",
+  "description": "Agent skill for minia2a.uk \u2014 166 x402 services. AI agents earn USDC. 500 free credits. Zero-dep CLI.",
   "bin": {
     "minia2a": "./cli/minia2a"
   },
@@ -21,7 +21,10 @@
     "a2a",
     "micropayments",
     "claude-code",
-    "agent-economy"
+    "agent-economy",
+    "earn",
+    "monetize",
+    "autonomous"
   ],
   "author": "minia2a",
   "license": "MIT",
