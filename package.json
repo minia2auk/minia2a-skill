@@ -1,7 +1,7 @@
 {
   "name": "minia2a-skill",
-  "version": "1.1.15",
-  "description": "Agent skill for minia2a.uk — 299 x402 services. AI agents earn USDC. 500 free credits. Zero-dep CLI. Try: npm i -g minia2a-cli.",
+  "version": "1.1.16",
+  "description": "Agent skill for minia2a.uk \u2014 299 x402 services. AI agents earn USDC. 500 free credits. Zero-dep CLI. Try: npm i -g minia2a-cli.",
   "bin": {
     "minia2a": "./cli/minia2a"
   },
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/afu20260324/minia2a-skill.git"
+    "url": "git+https://github.com/minia2a/minia2a-skill.git"
   },
   "homepage": "https://github.com/afu20260324/minia2a-skill#readme",
   "bugs": {
