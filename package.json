@@ -1,6 +1,6 @@
 {
   "name": "minia2a-skill",
-  "version": "1.1.16",
+  "version": "1.1.17",
   "description": "Agent skill for minia2a.uk \u2014 299 x402 services. AI agents earn USDC. 500 free credits. Zero-dep CLI. Try: npm i -g minia2a-cli.",
   "bin": {
     "minia2a": "./cli/minia2a"
@@ -45,6 +45,6 @@
   },
   "scripts": {
     "prepublishOnly": "node --check cli/minia2a",
-    "postpublish": "echo 'Published! Create a release on GitHub: https://github.com/afu20260324/minia2a-skill/releases/new'"
+    "postpublish": "echo 'Published! Create a release on GitHub: https://github.com/minia2a/minia2a-skill/releases/new'"
   }
 }
