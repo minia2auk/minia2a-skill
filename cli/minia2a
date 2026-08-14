@@ -1,21 +1,23 @@
 #!/usr/bin/env node
-// minia2a CLI — Agent-to-Agent marketplace client
+// minia2a CLI — x402 agent marketplace client (V5)
 // Usage: minia2a <command> [options]
 // API base: MINIA2A_API env var (default https://minia2a.uk)
 // Zero dependencies — runs on any Node 18+ installation.
 
 const API = process.env.MINIA2A_API || 'https://minia2a.uk';
 const USAGE = `
-minia2a — Agent-to-Agent marketplace
+minia2a — x402 agent marketplace (V5)
 
 Usage:
   minia2a discover [query] [--category <cat>] [--sort volume|price]
-  minia2a call <id> --tx-hash <hash> --signature <sig> [--input <json>]
-  minia2a account <name>
-  minia2a register [--name ... --endpoint ... --price-cents <n> --wallet <0x> --advantage ...]
-  minia2a update <id> --api-key <key> [--endpoint <url>] [--price-cents <n>] [--desc "..."]
-  minia2a delete <id> --api-key <key>
-  minia2a rate <id> --tx-hash <hash> --rating <1-5> [--comment "..."]
+  minia2a meta
+  minia2a register --name <n> --wallet <0x...> --signature <0x...>
+  minia2a call <service-id> --wallet <0x...> [--input <json>] [--probe]
+  minia2a help [topic]
+
+No human signup. Register with a self-custody wallet + EIP-191 signature
+for 500 free credits (through Sep 1, 2026). Pay per call in USDC via x402
+(HTTP 402) once credits run out. Full guide: https://minia2a.uk/AGENTS.md
 `;
 
 function bail(msg, code = 1) {
@@ -36,12 +38,9 @@ function flag(name) {
   const i = args.indexOf('--' + name);
   if (i === -1) return null;
   const v = args[i + 1];
-  // Only treat as a value if it doesn't look like a flag
-  if (!v || v.startsWith('--')) return true; // boolean flag
-  return v;
+  return (!v || v.startsWith('--')) ? true : v;
 }
 
-// Parse positional args (before first --flag)
 const positional = [];
 for (let i = 0; i < args.length; i++) {
   if (args[i].startsWith('--')) { i++; continue; }
@@ -59,94 +58,46 @@ async function discover() {
   if (sort) params.set('sort', sort);
   try {
     const r = await fetch(`${API}/api/services?${params}`);
-    if (!r.ok) bail(`Error: ${r.status}`, 3);
-    json(await r.json());
-  } catch(e) {
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch (e) {
     bail(`Cannot reach marketplace: ${e.message}`, 3);
   }
 }
 
-async function call(id) {
-  if (!id) bail('Usage: minia2a call <id> --tx-hash <hash> --signature <sig> [--input <json>]');
-  const txHash = flag('tx-hash');
-  if (!txHash || txHash === true) bail('--tx-hash required');
-  const signature = flag('signature');
-  if (!signature || signature === true) bail('--signature required (sign txHash:serviceId with your wallet)');
-  let input = undefined;
-  const inputStr = flag('input');
-  if (inputStr) {
-    try { input = JSON.parse(inputStr); } catch { bail('--input must be valid JSON'); }
-  }
+async function meta() {
   try {
-    const r = await fetch(`${API}/api/call/${encodeURIComponent(id)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ txHash, signature, input })
-    });
+    const r = await fetch(`${API}/.well-known/x402`);
     const d = await r.json();
     json(d);
     if (!r.ok) process.exit(3);
-  } catch(e) {
-    bail(`Cannot reach marketplace: ${e.message}`, 3);
-  }
-}
-
-async function account(name) {
-  if (!name) bail('Usage: minia2a account <name>');
-  try {
-    const r = await fetch(`${API}/api/account/${encodeURIComponent(name)}`);
-    const d = await r.json();
-    json(d);
-    if (!r.ok) process.exit(3);
-  } catch(e) {
+  } catch (e) {
     bail(`Cannot reach marketplace: ${e.message}`, 3);
   }
 }
 
 async function register() {
-  let name = flag('name');
-  let endpoint = flag('endpoint');
-  let priceCents = flag('price-cents');
-  let wallet = flag('wallet');
-  let advantage = flag('advantage');
-  let category = flag('category') || 'other';
-  let model = flag('model') || '';
-  let desc = flag('desc') || '';
-  let agentName = flag('agent-name') || '';
+  const name = flag('name');
+  const wallet = flag('wallet');
+  const signature = flag('signature');
 
-  // Validate: boolean flags (true) mean the flag was present without a value → invalid
-  if (name === true || endpoint === true || priceCents === true || wallet === true || advantage === true) {
-    bail('Missing value for a required flag. Use --name "value" not --name without value.');
+  if (!name || name === true) bail('--name <name> required');
+  if (!wallet || wallet === true) bail('--wallet <0x...> required (your own self-custody wallet)');
+
+  if (!signature || signature === true) {
+    // The CLI never holds your key — you sign the message yourself (EIP-191 personal_sign).
+    console.error('A signature is required. Sign this exact message with your wallet (EIP-191 personal_sign):\n');
+    console.error(`  minia2a register: ${wallet}\n`);
+    console.error('Then re-run with --signature <0x...>:\n');
+    console.error(`  minia2a register --name "${name}" --wallet "${wallet}" --signature "0xYOUR_SIGNATURE"\n`);
+    console.error('(cast example: cast wallet sign --data 0x... "minia2a register: <wallet>")');
+    process.exit(1);
   }
 
-  if (!name || !endpoint || !priceCents || !wallet || !advantage) {
-    const rl = require('readline').createInterface({ input: process.stdin, output: process.stdout });
-    const ask = (q) => new Promise(resolve => rl.question(q, resolve));
-
-    console.error('─ Register an agent service on minia2a.uk ─');
-    name = name || await ask('Service name: ');
-    desc = desc || await ask('Short description: ');
-    endpoint = endpoint || await ask('Your agent endpoint URL: ');
-    priceCents = priceCents || await ask('Price in cents (min 5¢): ');
-    agentName = agentName || await ask('Your agent name (or press ENTER): ');
-    model = model || await ask('Model (e.g. DeepSeek V4): ');
-    category = category !== 'other' ? category : ((await ask('Category [other]: ')) || 'other');
-    wallet = wallet || await ask('Your wallet (0x...) for settlement: ');
-    advantage = advantage || await ask('Why buy instead of DIY (min 10 chars): ');
-
-    const done = new Promise(r => rl.on('close', r));
-    rl.close();
-    await done;
-  }
-
-  const body = {
-    name, endpoint, priceCents: parseInt(priceCents), wallet,
-    advantage, desc, category, model,
-    agentName: agentName || undefined
-  };
-
+  const body = { name, wallet, signature };
   try {
-    const r = await fetch(`${API}/api/register`, {
+    const r = await fetch(`${API}/api/v1/register-simple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -154,75 +105,76 @@ async function register() {
     const d = await r.json();
     json(d);
     if (!r.ok) process.exit(3);
-  } catch(e) {
+  } catch (e) {
     bail(`Cannot reach marketplace: ${e.message}`, 3);
   }
 }
 
-async function rate() {
-  const id = positional[0];
-  if (!id) bail('Usage: minia2a rate <service-id> --tx-hash <hash> --rating <1-5> [--comment "..."]');
-  const txHash = flag('tx-hash');
-  if (!txHash || txHash === true) bail('--tx-hash required');
-  const rating = parseInt(flag('rating'), 10);
-  if (!rating || rating < 1 || rating > 5) bail('--rating must be 1-5');
-  const comment = flag('comment') || '';
-  try {
-    const r = await fetch(`${API}/api/rate/${encodeURIComponent(id)}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({txHash,rating,comment})
-    });
-    const d = await r.json();
-    json(d);
-    if (!r.ok) process.exit(3);
-  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
-}
+async function call(id) {
+  if (!id) bail('Usage: minia2a call <service-id> --wallet <0x...> [--input <json>] [--probe]');
+  const wallet = flag('wallet');
+  const probe = flag('probe') === true; // --probe present → just check price, no credits consumed
+  let input = undefined;
+  const inputStr = flag('input');
+  if (inputStr && inputStr !== true) {
+    try { input = JSON.parse(inputStr); } catch { bail('--input must be valid JSON'); }
+  }
 
-async function update() {
-  const id = positional[0];
-  if (!id) bail('Usage: minia2a update <id> --api-key <key> [--endpoint <url>] [--price-cents <n>] [--desc "..."]');
-  const apiKey = flag('api-key');
-  if (!apiKey || apiKey === true) bail('--api-key required');
-  const body = { apiKey };
-  const ep = flag('endpoint'); if (ep && ep !== true) body.endpoint = ep;
-  const pc = flag('price-cents'); if (pc && pc !== true) body.priceCents = parseInt(pc, 10);
-  const desc = flag('desc'); if (desc && desc !== true) body.desc = desc;
-  const adv = flag('advantage'); if (adv && adv !== true) body.advantage = adv;
-  if (Object.keys(body).length === 1) bail('No fields to update');
+  // Resolve the service endpoint
+  let svc;
   try {
-    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`, {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
-    });
-    const d = await r.json();
-    json(d);
-    if (!r.ok) process.exit(3);
-  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
-}
-
-async function del() {
-  const id = positional[0];
-  if (!id) bail('Usage: minia2a delete <service-id> --api-key <key>');
-  const apiKey = flag('api-key');
-  if (!apiKey || apiKey === true) bail('--api-key required (get it from registration response)');
-  try {
-    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`, {
-      method:'DELETE', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({apiKey})
-    });
-    const d = await r.json();
-    json(d);
-    if (!r.ok) process.exit(3);
-  } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
-}
-
-async function meta() {
-  try {
-    const r = await fetch(`${API}/.well-known/x402`);
-    if (!r.ok) bail(`Error: ${r.status}`, 3);
-    json(await r.json());
-  } catch(e) {
+    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`);
+    if (!r.ok) bail(`Service not found: ${id}`, 3);
+    svc = await r.json();
+  } catch (e) {
     bail(`Cannot reach marketplace: ${e.message}`, 3);
   }
+
+  const ep = svc.endpoint;
+  const url = new URL(ep);
+  url.searchParams.set(probe ? 'probe' : 'wallet', probe ? '1' : wallet);
+
+  try {
+    const opts = { headers: { 'User-Agent': 'minia2a-skill/1.x' } };
+    let r;
+    if (input !== undefined) {
+      opts.method = 'POST';
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(input);
+      r = await fetch(url.toString(), opts);
+    } else {
+      r = await fetch(url.toString(), opts);
+    }
+
+    const d = await r.json();
+
+    if (r.status === 402) {
+      // Payment required — surface the machine-readable x402 payload.
+      console.error(`Payment required (HTTP 402) for ${svc.name}. Price: $${svc.price} USDC.`);
+      console.error('x402 accepts[]:');
+      json(d);
+      process.exit(3);
+    }
+
+    json(d);
+    if (!r.ok) process.exit(3);
+  } catch (e) {
+    bail(`Call failed: ${e.message}`, 3);
+  }
+}
+
+async function help() {
+  const topic = positional[0];
+  if (topic) {
+    console.error(`minia2a help: ${topic}\n`);
+    console.error('The full machine-readable guide lives at https://minia2a.uk/AGENTS.md');
+    console.error('Quick reference:');
+    console.error('  register — POST /api/v1/register-simple {name, wallet, signature} → 500 free credits');
+    console.error('  call     — GET <service-endpoint>?wallet=0x... (credits decrement)');
+    console.error('  probe    — append ?probe=1 to any endpoint → HTTP 402 with payment JSON (free)');
+    return;
+  }
+  console.error(USAGE.trim());
 }
 
 // ----- main -----
@@ -233,45 +185,23 @@ async function meta() {
       case 'search':
       case 'list':
         return await discover();
-      case 'call':
-        return await call(positional[0]);
-      case 'account':
-      case 'balance':
-        return await account(positional[0]);
+      case 'meta':
+      case 'info':
+      case 'stats':
+        return await meta();
       case 'register':
       case 'reg':
         return await register();
-      case 'rate':
-      case 'review':
-        return await rate();
-      case 'delete':
-      case 'del':
-        return await del();
-      case 'update':
-      case 'edit':
-        return await update();
-      case 'meta':
-      case 'info':
-	      case 'stats':
-        return await meta();
+      case 'call':
+        return await call(positional[0]);
       case 'help':
       case '--help':
       case '-h':
-        const topic = positional[0];
-        if (topic) {
-          try {
-            const r = await fetch(`${API}/api/help?topic=${encodeURIComponent(topic)}`);
-            json(await r.json());
-          } catch(e) { bail(`Cannot reach marketplace: ${e.message}`, 3); }
-        } else {
-          console.error(USAGE.trim());
-          console.error('\nTopics: minia2a help <register|call|pricing|wallet|apiKey|errors|endpoints>');
-        }
-        break;
+        return await help();
       default:
         bail(`Unknown command: ${cmd}\n${USAGE}`);
     }
-  } catch(e) {
+  } catch (e) {
     bail(`Unexpected error: ${e.message}`, 3);
   }
 })();
