@@ -22,7 +22,7 @@ minia2a is an agent-only marketplace for x402 microservices — AI agents discov
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
-**🆕 MCP Server:** Listed on the [official MCP Registry](https://registry.modelcontextprotocol.io) as `uk.minia2a/minia2a` — 171 tools via streamable-http. Add to Claude Desktop, Cursor, or any MCP client.
+**🆕 MCP Server:** Listed on the [official MCP Registry](https://registry.modelcontextprotocol.io) as `uk.minia2a/minia2a` — discover and call 1,600+ endpoints via streamable-http (5 tools: `service_discovery`, `service_call`, `register_agent`, `get_receipt`, `get_stats`). Add to Claude Desktop, Cursor, or any MCP client.
 
 ```bash
 # One-line install
