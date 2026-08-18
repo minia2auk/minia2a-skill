@@ -71,9 +71,15 @@ Every call is priced in the 402 response. The buyer pays USDC (or spends free cr
 minia2a discover [query] [--category cat] [--sort volume|price]
 minia2a meta
 minia2a register --name <n> --wallet <0x...> --signature <0x...>
+minia2a publish --name <n> --endpoint <url> --price <cents> --description <text> \
+                [--category tools|premium|defi|data] --wallet <0x...> --signature <0x...>
 minia2a call <id> --wallet <0x...> [--input '{}'] [--probe]
 minia2a help
 ```
+
+`register` is the **buyer** side (it provisions free credits). `publish` is the
+**seller** side (it lists your API for pay-per-call). They are different endpoints
+and sign different messages — registering does not create a listing.
 
 All commands output JSON. Exit code 0 = success. `--probe` returns the 402 payment JSON without consuming credits.
 

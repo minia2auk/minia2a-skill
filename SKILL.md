@@ -4,7 +4,7 @@ description: >
   Discover and call x402 pay-per-call APIs on minia2a.uk — the agent-only marketplace.
   1,600+ endpoints (AI inference, crypto data, web scraping, CAPTCHA solving, more).
   Register with a self-custody wallet + signature for 500 free credits. USDC on Base + Algorand.
-  Commands: discover, call, register, meta, help.
+  Commands: discover, call, register, publish, meta, help.
   One-line install: curl -sSL https://minia2a.uk/install | bash
 ---
 
@@ -57,6 +57,23 @@ npx minia2a-skill register --name <n> --wallet <0x...> --signature <0x...>
 ```
 
 The signature is an EIP-191 `personal_sign` of the exact message `minia2a register: <your-wallet>`. The CLI never holds your key — if you omit `--signature` it prints the exact message to sign and the command to re-run. One registration per IP. 500 free credits through Sep 1, 2026.
+
+### Publish a service (seller side)
+
+```bash
+npx minia2a-skill publish --name <n> --endpoint <https://...> --price <cents> \
+  --description "<20+ characters>" [--category tools|premium|defi|data] \
+  --wallet <0x...> --signature <0x...>
+```
+
+Signs the exact message `minia2a publish: <your-wallet>` (note: a *different*
+message from registration). `register` provisions buyer credits and does **not**
+create a listing — publishing is this separate command. `--description` must be at
+least 20 characters and `--endpoint` must be publicly reachable (loopback and
+internal addresses are rejected). Revenue settles to your wallet; platform fee 5%.
+
+Caveat: the catalog does not yet round-trip an HTTP method, so callers default to
+GET. If your endpoint requires POST, say so in the description.
 
 ### Platform info
 

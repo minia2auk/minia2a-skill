@@ -12,6 +12,8 @@ Usage:
   minia2a discover [query] [--category <cat>] [--sort volume|price]
   minia2a meta
   minia2a register --name <n> --wallet <0x...> --signature <0x...>
+  minia2a publish --name <n> --endpoint <url> --price <cents> --description <text>
+                  [--category <cat>] --wallet <0x...> --signature <0x...>
   minia2a call <service-id> --wallet <0x...> [--input <json>] [--probe]
   minia2a help [topic]
 
@@ -110,6 +112,75 @@ async function register() {
   }
 }
 
+// Seller path. `register` above is BUYER-side (it provisions credits, not a listing) —
+// publishing a service is a different endpoint with a different signed message.
+const CATEGORIES = ['tools', 'premium', 'defi', 'data'];
+
+async function publish() {
+  const name = flag('name');
+  const endpoint = flag('endpoint');
+  const price = flag('price');
+  const wallet = flag('wallet');
+  const signature = flag('signature');
+  let category = flag('category');
+
+  if (!name || name === true) bail('--name <name> required');
+  if (!endpoint || endpoint === true) bail('--endpoint <https://...> required');
+  if (!wallet || wallet === true) bail('--wallet <0x...> required (revenue settles here)');
+
+  if (!/^https?:\/\//i.test(endpoint)) bail('--endpoint must be an absolute http(s) URL');
+
+  // Rejected server-side anyway (SSRF guard) — fail early with a clearer reason.
+  if (/^https?:\/\/(localhost|127\.|10\.|192\.168\.|169\.254\.|\[::1\])/i.test(endpoint)) {
+    bail('--endpoint must be publicly reachable; internal/loopback addresses are rejected');
+  }
+
+  const priceCents = Number(price);
+  if (!Number.isInteger(priceCents) || priceCents < 1 || priceCents > 10000) {
+    bail('--price <cents> required: integer 1–10000 (1 = $0.01, 10000 = $100.00)');
+  }
+
+  // Server enforces a 20-char minimum; catch it here so the failure is legible.
+  const description = flag('description');
+  if (!description || description === true || String(description).length < 20) {
+    bail('--description <text> required: at least 20 characters (buyers see this in the catalog)');
+  }
+
+  if (!category || category === true) category = 'tools';
+  if (!CATEGORIES.includes(category)) {
+    bail(`--category must be one of: ${CATEGORIES.join(', ')}`);
+  }
+
+  if (!signature || signature === true) {
+    // Same contract as register: the CLI never holds your key.
+    console.error('A signature is required. Sign this exact message with your wallet (EIP-191 personal_sign):\n');
+    console.error(`  minia2a publish: ${wallet}\n`);
+    console.error('Then re-run with --signature <0x...>:\n');
+    console.error(`  minia2a publish --name "${name}" --endpoint "${endpoint}" --price ${priceCents} --wallet "${wallet}" --signature "0xYOUR_SIGNATURE"\n`);
+    console.error('(cast example: cast wallet sign --data 0x... "minia2a publish: <wallet>")');
+    process.exit(1);
+  }
+
+  const body = { name, endpoint, price_cents: priceCents, category, description, wallet, signature };
+  try {
+    const r = await fetch(`${API}/api/v1/publish-service`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    json(d);
+    if (!r.ok) process.exit(3);
+    // The catalog does not round-trip an HTTP method yet, so POST-only endpoints
+    // get called with GET by generic clients. Warn rather than let it fail silently.
+    console.error('\nPublished. Note: the catalog does not yet record an HTTP method —');
+    console.error('callers default to GET. If your endpoint requires POST, state that in');
+    console.error('the service description until method round-trip ships.');
+  } catch (e) {
+    bail(`Cannot reach marketplace: ${e.message}`, 3);
+  }
+}
+
 async function call(id) {
   if (!id) bail('Usage: minia2a call <service-id> --wallet <0x...> [--input <json>] [--probe]');
   const wallet = flag('wallet');
@@ -169,7 +240,8 @@ async function help() {
     console.error(`minia2a help: ${topic}\n`);
     console.error('The full machine-readable guide lives at https://minia2a.uk/AGENTS.md');
     console.error('Quick reference:');
-    console.error('  register — POST /api/v1/register-simple {name, wallet, signature} → 500 free credits');
+    console.error('  register — POST /api/v1/register-simple {name, wallet, signature} → 500 free credits (BUYER side)');
+    console.error('  publish  — POST /api/v1/publish-service {name, endpoint, price_cents, category, wallet, signature} (SELLER side)');
     console.error('  call     — GET <service-endpoint>?wallet=0x... (credits decrement)');
     console.error('  probe    — append ?probe=1 to any endpoint → HTTP 402 with payment JSON (free)');
     return;
@@ -189,6 +261,9 @@ async function help() {
       case 'info':
       case 'stats':
         return await meta();
+      case 'publish':
+      case 'sell':
+        return await publish();
       case 'register':
       case 'reg':
         return await register();
