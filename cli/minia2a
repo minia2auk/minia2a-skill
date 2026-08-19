@@ -14,7 +14,8 @@ Usage:
   minia2a register --name <n> --wallet <0x...> --signature <0x...>
   minia2a publish --name <n> --endpoint <url> --price <cents> --description <text>
                   [--category <cat>] --wallet <0x...> --signature <0x...>
-  minia2a call <service-id> --wallet <0x...> [--input <json>] [--probe]
+  minia2a call <service-id> --wallet <0x...> [--signature <0x...> --timestamp <unix>]
+                            [--input <json>] [--probe]
   minia2a help [topic]
 
 No human signup. Register with a self-custody wallet + EIP-191 signature
@@ -205,8 +206,32 @@ async function call(id) {
   const url = new URL(ep);
   url.searchParams.set(probe ? 'probe' : 'wallet', probe ? '1' : wallet);
 
+  // A registered wallet's own 15 trials are only reachable with a signed call. The signed
+  // message uses the catalog id (x402-time), not the URL slug (time) — signing the slug fails
+  // with exactly the 402 a bad signature produces, so print the id-correct message rather than
+  // letting the caller guess it.
+  const trialHeaders = {};
+  const signature = flag('signature');
+  if (!probe && wallet && wallet !== true) {
+    const ts = flag('timestamp') && flag('timestamp') !== true
+      ? String(flag('timestamp'))
+      : String(Math.floor(Date.now() / 1000));
+    if (signature && signature !== true) {
+      trialHeaders['X-Wallet-Signature'] = signature;
+      trialHeaders['X-Trial-Timestamp'] = ts;
+    } else {
+      console.error('Note: --wallet alone does not draw on the wallet\'s trial bucket — this call');
+      console.error('will use the anonymous per-IP bucket. To use the wallet\'s own 15 trials, sign');
+      console.error('this exact message (EIP-191 personal_sign):\n');
+      console.error(`  minia2a trial:${wallet}:${svc.id}:${ts}\n`);
+      console.error('then rerun within 5 minutes:\n');
+      console.error(`  minia2a call ${id} --wallet ${wallet} --timestamp ${ts} --signature 0xYOUR_SIGNATURE\n`);
+      console.error(`(cast example: cast wallet sign "minia2a trial:${wallet}:${svc.id}:${ts}")\n`);
+    }
+  }
+
   try {
-    const opts = { headers: { 'User-Agent': 'minia2a-skill/1.x' } };
+    const opts = { headers: { 'User-Agent': 'minia2a-skill/1.x', ...trialHeaders } };
     let r;
     if (input !== undefined) {
       opts.method = 'POST';
@@ -222,10 +247,18 @@ async function call(id) {
     if (r.status === 402) {
       // Payment required — surface the machine-readable x402 payload.
       console.error(`Payment required (HTTP 402) for ${svc.name}. Price: $${svc.price} USDC.`);
+      if (trialHeaders['X-Wallet-Signature']) {
+        console.error(`Signed as ${wallet}: either this wallet's 15 trials are spent, or the wallet`);
+        console.error('is not registered, or the timestamp is older than 5 minutes.');
+      }
       console.error('x402 accepts[]:');
       json(d);
       process.exit(3);
     }
+
+    // Which bucket paid for the call — "wallet" means the signature was accepted.
+    const mode = r.headers.get('x-trial-mode');
+    if (mode) console.error(`trial: mode=${mode} remaining=${r.headers.get('x-trial-remaining') ?? '?'}`);
 
     json(d);
     if (!r.ok) process.exit(3);

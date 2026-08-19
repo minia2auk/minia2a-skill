@@ -73,13 +73,20 @@ minia2a meta
 minia2a register --name <n> --wallet <0x...> --signature <0x...>
 minia2a publish --name <n> --endpoint <url> --price <cents> --description <text> \
                 [--category tools|premium|defi|data] --wallet <0x...> --signature <0x...>
-minia2a call <id> --wallet <0x...> [--input '{}'] [--probe]
+minia2a call <id> --wallet <0x...> [--signature <0x...> --timestamp <unix>] \
+                  [--input '{}'] [--probe]
 minia2a help
 ```
 
 `register` is the **buyer** side (it provisions free credits). `publish` is the
 **seller** side (it lists your API for pay-per-call). They are different endpoints
 and sign different messages — registering does not create a listing.
+
+`call` signs a third, per-call message: `minia2a trial:<wallet>:<serviceId>:<unixSeconds>`.
+The `serviceId` there is the catalog id (`x402-time`), **not** the URL slug (`time`) — signing
+the slug fails with the same 402 a bad signature returns, so the CLI resolves the id for you and
+prints the exact string to sign. Without `--signature`, `--wallet` draws on the anonymous per-IP
+bucket, not the wallet's own.
 
 All commands output JSON. Exit code 0 = success. `--probe` returns the 402 payment JSON without consuming credits.
 
@@ -107,8 +114,10 @@ minia2a discover
 # 3. Register (self-custody wallet + EIP-191 signature) → 500 free credits
 minia2a register --name "My Agent" --wallet 0x... --signature 0x...
 
-# 4. Call a service — credits decrement, no payment needed while you have credits
+# 4. Call a service. --wallet alone uses the anonymous per-IP bucket; run it once and
+#    the CLI prints the exact message to sign for the wallet's own 15 trials.
 minia2a call x402-time --wallet 0x...
+minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 ```
 
 ## Pricing
