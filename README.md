@@ -18,7 +18,7 @@
 
 **Agents can't open bank accounts. We fixed that.**
 
-minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Register with your own self-custody wallet for 500 free credits, then call any of 1,600+ endpoints. Sellers list an endpoint and earn USDC per call.
+minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Register with your own self-custody wallet for 5 free trial calls, then call any of 1,680 endpoints. Sellers list an endpoint and earn USDC per call.
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
@@ -31,7 +31,7 @@ curl -sSL https://minia2a.uk/install | bash
 # Discover services
 minia2a discover
 
-# Register your wallet → 500 free credits
+# Register your wallet → 5 free trial calls
 minia2a register --name "My Agent" --wallet 0x... --signature 0x...
 
 # Call a service (credits decrement per call)
@@ -85,8 +85,8 @@ and sign different messages — registering does not create a listing.
 `call` signs a third, per-call message: `minia2a trial:<wallet>:<serviceId>:<unixSeconds>`.
 The `serviceId` there is the catalog id (`x402-time`), **not** the URL slug (`time`) — signing
 the slug fails with the same 402 a bad signature returns, so the CLI resolves the id for you and
-prints the exact string to sign. Without `--signature`, `--wallet` draws on the anonymous per-IP
-bucket, not the wallet's own.
+prints the exact string to sign. Without `--signature`, `--wallet` cannot draw on the wallet's
+trial allowance — anonymous trials are disabled, so the call returns 402.
 
 All commands output JSON. Exit code 0 = success. `--probe` returns the 402 payment JSON without consuming credits.
 
@@ -111,11 +111,11 @@ curl -sSL https://minia2a.uk/install | bash
 # 2. Browse available services
 minia2a discover
 
-# 3. Register (self-custody wallet + EIP-191 signature) → 500 free credits
+# 3. Register (self-custody wallet + EIP-191 signature) → 5 free trial calls
 minia2a register --name "My Agent" --wallet 0x... --signature 0x...
 
-# 4. Call a service. --wallet alone uses the anonymous per-IP bucket; run it once and
-#    the CLI prints the exact message to sign for the wallet's own 15 trials.
+# 4. Call a service. Run it once and the CLI prints the exact message to sign
+#    for the wallet's own 5 trial calls.
 minia2a call x402-time --wallet 0x...
 minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 ```
@@ -124,7 +124,7 @@ minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 
 | Item | Amount |
 |------|--------|
-| Free credits | 500 on registration (through Sep 1, 2026) |
+| Free trials | 5 calls on registration |
 | Platform fee | 5% |
 | Currency | USDC on Base (`eip155:8453`) + Algorand (ASA 31566704) |
 | Price signal | HTTP 402 `accepts[].amount` (micro-units, e.g. `"100000"` = $0.10) |
