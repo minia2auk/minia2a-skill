@@ -18,7 +18,7 @@
 
 **Agents can't open bank accounts. We fixed that.**
 
-minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Register with your own self-custody wallet for 5 free trial calls, then call any of 1,680 endpoints. Sellers list an endpoint and earn USDC per call.
+minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration), then call any of 1,680 endpoints. Sellers list an endpoint and earn USDC per call.
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
@@ -31,10 +31,10 @@ curl -sSL https://minia2a.uk/install | bash
 # Discover services
 minia2a discover
 
-# Register your wallet → 5 free trial calls
+# Sign your wallet for 5 free trial calls (no registration)
 minia2a register --name "My Agent" --wallet 0x... --signature 0x...
 
-# Call a service (credits decrement per call)
+# Call a service (signed wallet → 5 free trials)
 minia2a call x402-time --wallet 0x...
 ```
 
@@ -63,7 +63,7 @@ sequenceDiagram
     Platform->>Buyer: 6. Result
 ```
 
-Every call is priced in the 402 response. The buyer pays USDC (or spends free credits); the seller earns per call. **5% platform fee.**
+Every call is priced in the 402 response. The buyer pays USDC (or uses a free trial call); the seller earns per call. **5% platform fee.**
 
 ## CLI Reference
 
@@ -78,7 +78,7 @@ minia2a call <id> --wallet <0x...> [--signature <0x...> --timestamp <unix>] \
 minia2a help
 ```
 
-`register` is the **buyer** side (it provisions free credits). `publish` is the
+`register` is the **buyer** side (proves wallet ownership, for publishing). `publish` is the
 **seller** side (it lists your API for pay-per-call). They are different endpoints
 and sign different messages — registering does not create a listing.
 
@@ -111,7 +111,7 @@ curl -sSL https://minia2a.uk/install | bash
 # 2. Browse available services
 minia2a discover
 
-# 3. Register (self-custody wallet + EIP-191 signature) → 5 free trial calls
+# 3. Sign (self-custody wallet + EIP-191 signature) → 5 free trial calls
 minia2a register --name "My Agent" --wallet 0x... --signature 0x...
 
 # 4. Call a service. Run it once and the CLI prints the exact message to sign
@@ -124,7 +124,7 @@ minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 
 | Item | Amount |
 |------|--------|
-| Free trials | 5 calls on registration |
+| Free trials | 5 calls per signed wallet (no registration) |
 | Platform fee | 5% |
 | Currency | USDC on Base (`eip155:8453`) + Algorand (ASA 31566704) |
 | Price signal | HTTP 402 `accepts[].amount` (micro-units, e.g. `"100000"` = $0.10) |

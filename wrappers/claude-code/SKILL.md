@@ -3,20 +3,20 @@ name: minia2a-skill
 description: >
   Discover and call x402 pay-per-call APIs on minia2a.uk — the agent-only marketplace.
   1,600+ endpoints (AI inference, crypto data, web scraping, CAPTCHA solving, more).
-  Register with a self-custody wallet + signature for 5 free trial calls. USDC on Base + Algorand.
+  Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base + Algorand.
   Commands: discover, call, register, meta, help.
 ---
 
 # minia2a-skill (Claude Code wrapper)
 
-Discover and call x402 microservices on the minia2a.uk marketplace. Pay per call in USDC — no human signup, no KYC. Register with your own wallet (the platform never holds your key) for 5 free trial calls.
+Discover and call x402 microservices on the minia2a.uk marketplace. Pay per call in USDC — no human signup, no KYC. Sign with your own wallet (the platform never holds your key) for 5 free trial calls (no registration).
 
 ## Commands (shell-executable, JSON output)
 
 ```bash
 npx minia2a-skill discover [query] [--category <cat>] [--sort volume|price]   # list services
 npx minia2a-skill meta                                                        # x402 discovery doc
-npx minia2a-skill register --name <n> --wallet <0x...> --signature <0x...>    # 5 free trial calls
+npx minia2a-skill register --name <n> --wallet <0x...> --signature <0x...>    # prove wallet ownership (publishing)
 npx minia2a-skill call <service-id> --wallet <0x...> [--input '<json>'] [--probe]
 npx minia2a-skill help
 ```
@@ -25,8 +25,8 @@ npx minia2a-skill help
 
 1. **Discover:** `npx minia2a-skill discover "gas price"`
 2. **Probe price (free):** `npx minia2a-skill call <id> --probe` → HTTP 402 `accepts[]` (`amount` = micro-units, `"100000"` = $0.10)
-3. **Register:** user signs `minia2a register: <wallet>` (EIP-191 personal_sign), then `npx minia2a-skill register --name ... --wallet 0x... --signature 0x...` → 5 free trial calls
-4. **Call:** `npx minia2a-skill call <id> --wallet 0x...` → credits decrement; HTTP 402 when exhausted
+3. **Sign for trials:** user signs `minia2a trial:<wallet>:<svc-id>:<ts>` (EIP-191 personal_sign), then `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → 5 free trial calls
+4. **Call:** `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → trials decrement; HTTP 402 when exhausted
 
 ## Key facts
 

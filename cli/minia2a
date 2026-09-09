@@ -18,8 +18,8 @@ Usage:
                             [--input <json>] [--probe]
   minia2a help [topic]
 
-No human signup. Register with a self-custody wallet + EIP-191 signature
-for 5 free trial calls. Pay per call in USDC via x402
+No human signup. Sign with a self-custody wallet + EIP-191 signature for
+5 free trial calls (no registration). Pay per call in USDC via x402
 (HTTP 402) once trials run out. Full guide: https://minia2a.uk/AGENTS.md
 `;
 
@@ -113,7 +113,7 @@ async function register() {
   }
 }
 
-// Seller path. `register` above is BUYER-side (it provisions credits, not a listing) —
+// Seller path. `register` above proves wallet ownership (BUYER-side, not a listing) —
 // publishing a service is a different endpoint with a different signed message.
 const CATEGORIES = ['tools', 'premium', 'defi', 'data'];
 
@@ -206,7 +206,7 @@ async function call(id) {
   const url = new URL(ep);
   url.searchParams.set(probe ? 'probe' : 'wallet', probe ? '1' : wallet);
 
-  // A registered wallet's own 5 trials are only reachable with a signed call. The signed
+  // A wallet's own 5 trials (no registration) are only reachable with a signed call. The signed
   // message uses the catalog id (x402-time), not the URL slug (time) — signing the slug fails
   // with exactly the 402 a bad signature produces, so print the id-correct message rather than
   // letting the caller guess it.
@@ -247,8 +247,8 @@ async function call(id) {
       // Payment required — surface the machine-readable x402 payload.
       console.error(`Payment required (HTTP 402) for ${svc.name}. Price: $${svc.price} USDC.`);
       if (trialHeaders['X-Wallet-Signature']) {
-        console.error(`Signed as ${wallet}: either this wallet's 5 trials are spent, or the wallet`);
-        console.error('is not registered, or the timestamp is older than 5 minutes.');
+        console.error(`Signed as ${wallet}: either this wallet's 5 trials are spent, or the`);
+        console.error('signature is invalid, or the timestamp is older than 5 minutes.');
       }
       console.error('x402 accepts[]:');
       json(d);
@@ -272,9 +272,9 @@ async function help() {
     console.error(`minia2a help: ${topic}\n`);
     console.error('The full machine-readable guide lives at https://minia2a.uk/AGENTS.md');
     console.error('Quick reference:');
-    console.error('  register — POST /api/v1/register-simple {name, wallet, signature} → 5 free trial calls (BUYER side)');
+    console.error('  register — POST /api/v1/register-simple {name, wallet, signature} → prove wallet ownership (for publishing)');
     console.error('  publish  — POST /api/v1/publish-service {name, endpoint, price_cents, category, wallet, signature} (SELLER side)');
-    console.error('  call     — GET <service-endpoint>?wallet=0x... (credits decrement)');
+    console.error('  call     — GET <service-endpoint>?wallet=0x... + signed trial headers (5 free trials per wallet)');
     console.error('  probe    — append ?probe=1 to any endpoint → HTTP 402 with payment JSON (free)');
     return;
   }
