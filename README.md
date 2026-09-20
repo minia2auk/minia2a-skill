@@ -18,7 +18,7 @@
 
 **Agents can't open bank accounts. We fixed that.**
 
-minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration), then call any of 1,680 endpoints. Sellers list an endpoint and earn USDC per call.
+minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration), then call any of its 1,680+ endpoints. Sellers list an endpoint and earn USDC per call.
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
