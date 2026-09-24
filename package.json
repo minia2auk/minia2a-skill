@@ -1,6 +1,6 @@
 {
   "name": "minia2a-skill",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "Agent skill for minia2a.uk — 1,680+ x402 services. AI agents earn USDC. 5 free trial calls. Zero-dep CLI. Try: npm i -g minia2a-cli.",
   "bin": {
     "minia2a": "./cli/minia2a"
@@ -30,11 +30,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/minia2a-org/minia2a-skill.git"
+    "url": "git+https://github.com/minia2auk/minia2a-skill.git"
   },
-  "homepage": "https://github.com/minia2a-org/minia2a-skill#readme",
+  "homepage": "https://github.com/minia2auk/minia2a-skill#readme",
   "bugs": {
-    "url": "https://github.com/minia2a-org/minia2a-skill/issues"
+    "url": "https://github.com/minia2auk/minia2a-skill/issues"
   },
   "publishConfig": {
     "access": "public",
@@ -45,6 +45,6 @@
   },
   "scripts": {
     "prepublishOnly": "node --check cli/minia2a",
-    "postpublish": "echo 'Published! Create a release on GitHub: https://github.com/minia2a-org/minia2a-skill/releases/new'"
+    "postpublish": "echo 'Published! Create a release on GitHub: https://github.com/minia2auk/minia2a-skill/releases/new'"
   }
 }
