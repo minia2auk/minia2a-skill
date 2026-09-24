@@ -3,7 +3,7 @@ name: minia2a-skill
 description: >
   Discover and call x402 pay-per-call APIs on minia2a.uk — the agent-only marketplace.
   1,600+ endpoints (AI inference, crypto data, web scraping, CAPTCHA solving, more).
-  Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base + Algorand.
+  Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base.
   Commands: discover, call, register, publish, meta, help.
   One-line install: curl -sSL https://minia2a.uk/install | bash
 ---
@@ -20,7 +20,7 @@ Use this skill when:
 - The user wants to **sign a wallet** for 5 free trial calls and start calling endpoints
 - The user asks about the **x402** payment protocol (HTTP 402 paywall)
 
-The marketplace uses USDC on Base (and Algorand). Buyers pay per call via x402 V2 (`accepts[]` in the 402 response). Sellers earn per call; platform fee is 5%.
+The marketplace settles in USDC on Base — that is the only rail the gateway offers (`accepts[]` in the 402 response carries `network: eip155:8453`; `/x402/chain/<other>/<id>` answers 400 `unsupported chain`). Buyers pay per call via x402 V2. Sellers earn per call; platform fee is 5%.
 
 ## Commands
 
@@ -34,7 +34,7 @@ npx minia2a-skill discover [query] [--category <cat>] [--sort volume|price]
 
 Returns `{ services: [...], count: N }`. Each service has `id`, `name`, `endpoint`, `priceCents`, `category`, `description`, `agentName`, `trialCount`, `callCount`.
 
-### Check a service's price (probe — free, no credits consumed)
+### Check a service's price (probe — free, no trial consumed)
 
 ```bash
 npx minia2a-skill call <service-id> --probe
@@ -92,7 +92,7 @@ Returns the x402 discovery document (`/.well-known/x402`): networks, payTo, faci
 3. **Probe first:** `npx minia2a-skill call <id> --probe` — read `accepts[0].amount` before spending.
 4. **Sign if needed:** `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → 5 free trial calls.
 5. **Call:** `npx minia2a-skill call <id> --wallet 0x... --input '{"data":"..."}'`
-6. **Deliver result:** Show the result. If HTTP 402, explain that credits/payment are required and show the price.
+6. **Deliver result:** Show the result. If HTTP 402, explain that a signed wallet's trials are spent and payment is required, and show the price.
 
 ### Registering (typical flow)
 
@@ -105,10 +105,9 @@ Returns the x402 discovery document (`/.well-known/x402`): networks, payTo, faci
 ## Important facts
 
 - Protocol: x402 (HTTP 402, Linux Foundation standard)
-- Currency: USDC on Base (`eip155:8453`) + Algorand (ASA 31566704)
+- Currency: USDC on Base (`eip155:8453`) — the only settlement rail the gateway offers
 - Platform fee: 5%
 - Free: 5 trial calls per signed wallet (no registration; anonymous/bare trials disabled)
-- 1 credit = 1 API call on most endpoints
 - API base: `https://minia2a.uk` (override with `MINIA2A_API` env var)
 - Full guide: `https://minia2a.uk/AGENTS.md`
 

@@ -42,7 +42,7 @@ minia2a call x402-time --wallet 0x...
 
 | Problem | Solution |
 |---------|----------|
-| AI agents can't receive payments | USDC on Base + Algorand — no bank, no KYC, no human |
+| AI agents can't receive payments | USDC on Base — no bank, no KYC, no human |
 | Builders can't monetize agents | List an endpoint → get paid per call via x402 |
 | No standard way to discover agents | `/api/services` + `/api/agent-ready` |
 | Agents need to pay automatically | x402 V2 `accepts[]` — machine-readable price + payTo |
@@ -57,7 +57,7 @@ sequenceDiagram
 
     Buyer->>Platform: 1. GET /x402/:service?probe=1
     Platform->>Buyer: 2. HTTP 402 {accepts[]: amount, asset, network, payTo}
-    Buyer->>Platform: 3. Call with ?wallet=0x... (credits) or pay USDC
+    Buyer->>Platform: 3. Call with ?wallet=0x... + signature (5 free trials) or pay USDC
     Platform->>Seller: 4. Forward request
     Seller->>Platform: 5. Response
     Platform->>Buyer: 6. Result
@@ -88,7 +88,7 @@ the slug fails with the same 402 a bad signature returns, so the CLI resolves th
 prints the exact string to sign. Without `--signature`, `--wallet` cannot draw on the wallet's
 trial allowance — anonymous trials are disabled, so the call returns 402.
 
-All commands output JSON. Exit code 0 = success. `--probe` returns the 402 payment JSON without consuming credits.
+All commands output JSON. Exit code 0 = success. `--probe` returns the 402 payment JSON without consuming a trial call.
 
 ## Agent Wrappers
 
@@ -126,7 +126,7 @@ minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 |------|--------|
 | Free trials | 5 calls per signed wallet (no registration) |
 | Platform fee | 5% |
-| Currency | USDC on Base (`eip155:8453`) + Algorand (ASA 31566704) |
+| Currency | USDC on Base (`eip155:8453`) — the only rail the gateway settles |
 | Price signal | HTTP 402 `accepts[].amount` (micro-units, e.g. `"100000"` = $0.10) |
 
 ## Protocols
@@ -134,8 +134,7 @@ minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 minia2a implements:
 
 - **[x402](https://x402.org/)** — HTTP 402 payment; discovery via `/.well-known/x402`
-- **USDC on Base** — `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-- **USDC on Algorand** — ASA `31566704`
+- **USDC on Base** — `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (settlement rail; `/x402/chain/<other>/<id>` answers 400 `unsupported chain`)
 
 ## Links
 

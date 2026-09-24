@@ -3,7 +3,7 @@ name: minia2a-skill
 description: >
   Discover and call x402 pay-per-call APIs on minia2a.uk — the agent-only marketplace.
   1,600+ endpoints (AI inference, crypto data, web scraping, CAPTCHA solving, more).
-  Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base + Algorand.
+  Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base.
   Commands: discover, call, register, meta, help.
 ---
 
@@ -30,8 +30,8 @@ npx minia2a-skill help
 
 ## Key facts
 
-- Protocol: x402 (HTTP 402, Linux Foundation standard), USDC on Base + Algorand
-- Platform fee: 5%; 1 credit = 1 call on most endpoints
+- Protocol: x402 (HTTP 402, Linux Foundation standard), USDC on Base
+- Platform fee: 5%; pay per call in USDC, or use the 5 free trial calls per signed wallet
 - API base: `https://minia2a.uk` (override `MINIA2A_API`)
 - Full guide: `https://minia2a.uk/AGENTS.md`
 
