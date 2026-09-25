@@ -1,6 +1,6 @@
 {
   "name": "minia2a-skill",
-  "version": "1.3.7",
+  "version": "1.3.8",
   "description": "Agent skill for minia2a.uk — 1,680+ x402 services. AI agents earn USDC. 5 free trial calls. Zero-dep CLI. Try: npm i -g minia2a-cli.",
   "bin": {
     "minia2a": "./cli/minia2a"

@@ -32,6 +32,67 @@ function json(data) {
   console.log(JSON.stringify(data));
 }
 
+// ----- agent identity -----
+// Sent on first-party requests so the gateway can count distinct agents; the
+// server stores only HMAC(secret, id), never the raw value. Identity is
+// per-machine, not per-process — a per-process id would count every invocation
+// as a new agent and inflate the adoption metric it feeds.
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+let _agentIdResolved = false;
+let _agentIdCache = null;
+
+function agentId() {
+  if (_agentIdResolved) return _agentIdCache;
+  _agentIdResolved = true;
+  const fromEnv = process.env.MINIA2A_AGENT_ID;
+  if (fromEnv) return (_agentIdCache = fromEnv);
+  // Two locations exist across our published clients: the `minia2a` package reads
+  // ~/.minia2a-agent-id (the path the gateway's adoption.go names) and
+  // `minia2a-cli` reads ~/.minia2a/agent-id. Read both, in that order, so a
+  // machine that already has an id from either client keeps one identity instead
+  // of being counted twice; create the gateway-documented one.
+  const candidates = [
+    path.join(os.homedir(), '.minia2a-agent-id'),
+    path.join(os.homedir(), '.minia2a', 'agent-id'),
+  ];
+  for (const file of candidates) {
+    try {
+      const existing = fs.readFileSync(file, 'utf8').trim();
+      if (existing) return (_agentIdCache = existing);
+    } catch (e) { /* not created yet — fall through to the next candidate */ }
+  }
+  const id = 'agent:' + require('crypto').randomUUID();
+  try {
+    fs.writeFileSync(candidates[0], id, { mode: 0o600 });
+    return (_agentIdCache = id);
+  } catch (e) {
+    return (_agentIdCache = null);
+  }
+}
+
+// The id identifies us to our own gateway. A catalog entry can point off-domain
+// (the external-api category), so the header is gated on the host: a stable
+// per-machine identifier must not travel to a third party.
+function isFirstParty(url) {
+  try {
+    const h = new URL(url).hostname;
+    return h === 'minia2a.uk' || h.endsWith('.minia2a.uk');
+  } catch (e) {
+    return false;
+  }
+}
+
+function identityHeaders(url) {
+  const id = isFirstParty(url) ? agentId() : null;
+  return id ? { 'X-Agent-ID': id } : {};
+}
+
+function apiHeaders(url, extra) {
+  return { ...identityHeaders(url), ...(extra || {}) };
+}
+
 // ----- argument parsing -----
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -60,7 +121,7 @@ async function discover() {
   if (category) params.set('category', category);
   if (sort) params.set('sort', sort);
   try {
-    const r = await fetch(`${API}/api/services?${params}`);
+    const r = await fetch(`${API}/api/services?${params}`, { headers: apiHeaders(`${API}/api/services`) });
     const d = await r.json();
     json(d);
     if (!r.ok) process.exit(3);
@@ -71,7 +132,7 @@ async function discover() {
 
 async function meta() {
   try {
-    const r = await fetch(`${API}/.well-known/x402`);
+    const r = await fetch(`${API}/.well-known/x402`, { headers: apiHeaders(`${API}/.well-known/x402`) });
     const d = await r.json();
     json(d);
     if (!r.ok) process.exit(3);
@@ -102,7 +163,7 @@ async function register() {
   try {
     const r = await fetch(`${API}/api/v1/register-simple`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(`${API}/api/v1/register-simple`, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body)
     });
     const d = await r.json();
@@ -166,7 +227,7 @@ async function publish() {
   try {
     const r = await fetch(`${API}/api/v1/publish-service`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(`${API}/api/v1/publish-service`, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(body)
     });
     const d = await r.json();
@@ -195,7 +256,7 @@ async function call(id) {
   // Resolve the service endpoint
   let svc;
   try {
-    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`);
+    const r = await fetch(`${API}/api/services/${encodeURIComponent(id)}`, { headers: apiHeaders(`${API}/api/services`) });
     if (!r.ok) bail(`Service not found: ${id}`, 3);
     svc = await r.json();
   } catch (e) {
@@ -230,7 +291,7 @@ async function call(id) {
   }
 
   try {
-    const opts = { headers: { 'User-Agent': 'minia2a-skill/1.x', ...trialHeaders } };
+    const opts = { headers: apiHeaders(url.toString(), { 'User-Agent': 'minia2a-skill/1.x', ...trialHeaders }) };
     let r;
     if (input !== undefined) {
       opts.method = 'POST';
