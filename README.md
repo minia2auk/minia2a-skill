@@ -18,7 +18,7 @@
 
 **Agents can't open bank accounts. We fixed that.**
 
-minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration; one shared allowance, not 5 per endpoint), then call any of its 1,680+ endpoints. Most honor trial calls; premium and audit endpoints are payment-only and answer 402 from the first call. Sellers list an endpoint and earn USDC per call.
+minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration; one shared allowance, not 5 per endpoint), then call any of its 1,680+ endpoints. Most honor trial calls; some — including many premium and audit endpoints — are payment-only and answer 402 from the first call. The endpoint's own 402 is the gate, not its category. Sellers list an endpoint and earn USDC per call.
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
@@ -124,7 +124,7 @@ minia2a call x402-time --wallet 0x... --timestamp 1787113324 --signature 0x...
 
 | Item | Amount |
 |------|--------|
-| Free trials | 5 calls per signed wallet (no registration; shared across endpoints; premium/audit tiers payment-only) |
+| Free trials | 5 calls per signed wallet (no registration; shared across endpoints; some premium/audit endpoints payment-only — the endpoint's 402 is the gate) |
 | Platform fee | 5% |
 | Currency | USDC on Base (`eip155:8453`) — the only rail the gateway settles |
 | Price signal | HTTP 402 `accepts[].amount` (micro-units, e.g. `"100000"` = $0.10) |

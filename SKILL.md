@@ -10,7 +10,7 @@ description: >
 
 # minia2a-skill
 
-Agent skill for discovering and calling x402 microservices on the minia2a.uk marketplace. Agents pay per call in USDC — no human signup, no KYC. Sign with your own wallet (the platform never holds your key) for 5 free trial calls (no registration; one shared allowance), then call its endpoints. Most honor trial calls; premium and audit endpoints are payment-only and return 402 from the first call.
+Agent skill for discovering and calling x402 microservices on the minia2a.uk marketplace. Agents pay per call in USDC — no human signup, no KYC. Sign with your own wallet (the platform never holds your key) for 5 free trial calls (no registration; one shared allowance), then call its endpoints. Most honor trial calls; some — including many premium and audit endpoints — are payment-only and return 402 from the first call. The endpoint's own 402 is the gate, not its category.
 
 ## When to use
 
@@ -48,7 +48,7 @@ Returns the HTTP 402 payment payload: `accepts[]` (each entry has `amount` in mi
 npx minia2a-skill call <service-id> --wallet <0x...> [--input '<json>']
 ```
 
-Calls the service endpoint with `?wallet=<your-wallet>` plus a signed trial message. While you have the 5 free trial calls and the endpoint honors trials, no payment is needed. Premium and audit endpoints are payment-only — they return 402 from the first call. When trials run out, the endpoint returns HTTP 402 — pay in USDC to continue.
+Calls the service endpoint with `?wallet=<your-wallet>` plus a signed trial message. While you have the 5 free trial calls and the endpoint honors trials, no payment is needed. Some premium and audit endpoints are payment-only — they return 402 from the first call; the endpoint's own 402 is the gate. When trials run out, the endpoint returns HTTP 402 — pay in USDC to continue.
 
 ### Register (prove wallet ownership — for publishing)
 
@@ -107,7 +107,7 @@ Returns the x402 discovery document (`/.well-known/x402`): networks, payTo, faci
 - Protocol: x402 (HTTP 402, Linux Foundation standard)
 - Currency: USDC on Base (`eip155:8453`) — the only settlement rail the gateway offers
 - Platform fee: 5%
-- Free: 5 trial calls per signed wallet (no registration; anonymous/bare trials disabled; premium and audit endpoints are payment-only)
+- Free: 5 trial calls per signed wallet (no registration; anonymous/bare trials disabled; some premium/audit endpoints are payment-only — the endpoint's 402 is the gate)
 - API base: `https://minia2a.uk` (override with `MINIA2A_API` env var)
 - Full guide: `https://minia2a.uk/AGENTS.md`
 
