@@ -31,7 +31,7 @@ npx minia2a-skill help
 ## Key facts
 
 - Protocol: x402 (HTTP 402, Linux Foundation standard), USDC on Base
-- Platform fee: 5%; pay per call in USDC, or use the 5 free trial calls per signed wallet
+- Platform fee: 5%; pay per call in USDC, or use the 5 free trial calls per signed wallet (some premium/audit endpoints are payment-only — the endpoint's own 402 is the gate)
 - API base: `https://minia2a.uk` (override `MINIA2A_API`)
 - Full guide: `https://minia2a.uk/AGENTS.md`
 
