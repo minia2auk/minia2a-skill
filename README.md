@@ -63,7 +63,7 @@ sequenceDiagram
     Platform->>Buyer: 6. Result
 ```
 
-Every call is priced in the 402 response. The buyer pays USDC (or uses a free trial call); the seller earns per call. **5% platform fee.**
+Every call is priced in the 402 response. The buyer pays USDC (or uses a free trial call); the seller earns per call. **5% platform fee (0% through 2026).**
 
 ## CLI Reference
 

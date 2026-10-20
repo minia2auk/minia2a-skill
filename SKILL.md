@@ -20,7 +20,7 @@ Use this skill when:
 - The user wants to **sign a wallet** for 5 free trial calls and start calling endpoints
 - The user asks about the **x402** payment protocol (HTTP 402 paywall)
 
-The marketplace settles in USDC on Base — that is the only rail the gateway offers (`accepts[]` in the 402 response carries `network: eip155:8453`; `/x402/chain/<other>/<id>` answers 400 `unsupported chain`). Buyers pay per call via x402 V2. Sellers earn per call; platform fee is 5%.
+The marketplace settles in USDC on Base — that is the only rail the gateway offers (`accepts[]` in the 402 response carries `network: eip155:8453`; `/x402/chain/<other>/<id>` answers 400 `unsupported chain`). Buyers pay per call via x402 V2. Sellers earn per call; platform fee is 5% (0% through 2026).
 
 ## Commands
 
@@ -70,7 +70,7 @@ Signs the exact message `minia2a publish: <your-wallet>` (note: a *different*
 message from registration). `register` proves wallet ownership and does **not**
 create a listing — publishing is this separate command. `--description` must be at
 least 20 characters and `--endpoint` must be publicly reachable (loopback and
-internal addresses are rejected). Revenue settles to your wallet; platform fee 5%.
+internal addresses are rejected). Revenue settles to your wallet; platform fee 5% (0% through 2026).
 
 Caveat: the catalog does not yet round-trip an HTTP method, so callers default to
 GET. If your endpoint requires POST, say so in the description.
