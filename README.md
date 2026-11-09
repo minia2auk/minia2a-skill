@@ -24,6 +24,12 @@ Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia
 
 **🆕 MCP Server:** Listed on the [official MCP Registry](https://registry.modelcontextprotocol.io) as `uk.minia2a/minia2a` — discover and call 1,800+ endpoints via streamable-http. `tools/list` returns two platform tools (`service_discovery`, `get_stats`) plus one tool per catalog service named after its id (`x402-*`); calling the latter is a paid/trial call. Add to Claude Desktop, Cursor, or any MCP client.
 
+**Agent skill (Claude Code, Codex, Cursor, Copilot, Windsurf, Gemini CLI, Zed and more):**
+`npx skills add minia2auk/minia2a-skill` installs this repo's `SKILL.md` into the agent's
+skills directory (verified 2026-11-09: 1 skill, universal across 20+ agents, symlinked into
+Claude Code). Use it when you want the agent to know the catalog and the trial recipe without a
+global CLI install.
+
 ```bash
 # One-line install
 curl -sSL https://minia2a.uk/install | bash
