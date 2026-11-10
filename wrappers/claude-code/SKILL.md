@@ -17,7 +17,8 @@ Discover and call x402 microservices on the minia2a.uk marketplace. Pay per call
 npx minia2a-skill discover [query] [--category <cat>] [--sort volume|price]   # list services
 npx minia2a-skill meta                                                        # x402 discovery doc
 npx minia2a-skill register --name <n> --wallet <0x...> --signature <0x...>    # prove wallet ownership (publishing)
-npx minia2a-skill call <service-id> --wallet <0x...> [--input '<json>'] [--probe]
+npx minia2a-skill call <service-id> --wallet <0x...> --timestamp <unix> --signature <0x...> [--input '<json>']
+npx minia2a-skill call <service-id> --probe                                    # free price check, no trial spent
 npx minia2a-skill help
 ```
 
@@ -25,7 +26,7 @@ npx minia2a-skill help
 
 1. **Discover:** `npx minia2a-skill discover "gas price"`
 2. **Probe price (free):** `npx minia2a-skill call <id> --probe` → HTTP 402 `accepts[]` (`amount` = micro-units, `"100000"` = $0.10)
-3. **Sign for trials:** user signs `minia2a trial:<wallet>:<svc-id>:<ts>` (EIP-191 personal_sign), then `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → 5 free trial calls
+3. **Sign for trials:** user signs `minia2a trial:<wallet>:<catalog-id>:<ts>` (EIP-191 personal_sign; `catalog-id` is `x402-time`, **not** the URL slug `time`), then `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` within 5 minutes → 5 free trial calls
 4. **Call:** `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → trials decrement; HTTP 402 when exhausted
 
 ## Key facts
