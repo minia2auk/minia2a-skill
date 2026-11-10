@@ -45,10 +45,24 @@ Returns the HTTP 402 payment payload: `accepts[]` (each entry has `amount` in mi
 ### Call a service
 
 ```bash
-npx minia2a-skill call <service-id> --wallet <0x...> [--input '<json>']
+npx minia2a-skill call <service-id> --wallet <0x...> --timestamp <unix> \
+  --signature <0x...> [--input '<json>']
 ```
 
-Calls the service endpoint with `?wallet=<your-wallet>` plus a signed trial message. While you have the 5 free trial calls and the endpoint honors trials, no payment is needed. Some premium and audit endpoints are payment-only — they return 402 from the first call; the endpoint's own 402 is the gate. When trials run out, the endpoint returns HTTP 402 — pay in USDC to continue.
+Spending the wallet's own 5 trials takes **two steps** — the CLI never holds a key, so it
+cannot sign for you. Run the call once with `--wallet` alone and it prints the exact message
+to sign on stderr:
+
+```
+minia2a trial:<wallet>:<catalog-id>:<unix-seconds>
+```
+
+Sign that string with the wallet (EIP-191 `personal_sign`, e.g.
+`cast wallet sign "minia2a trial:0xabc...:x402-time:1794280507"`), then re-run with
+`--timestamp <that unix> --signature 0x...` within 5 minutes. Use the **catalog id**
+(`x402-time`), not the URL slug (`time`) — signing the slug fails with the same 402 a bad
+signature returns. On success stderr shows `trial: mode=wallet remaining=N` and stdout is the
+service's JSON result. Tutorial: `https://minia2a.uk/x402-tutorial`.
 
 ### Register (prove wallet ownership — for publishing)
 
@@ -90,7 +104,10 @@ Returns the x402 discovery document (`/.well-known/x402`): networks, payTo, faci
 1. **Discover:** `npx minia2a-skill discover "gas price" --sort volume`
 2. **Present:** Show top 3-5 services with name, price, category. Let the user pick.
 3. **Probe first:** `npx minia2a-skill call <id> --probe` — read `accepts[0].amount` before spending.
-4. **Sign if needed:** `npx minia2a-skill call <id> --wallet 0x... --signature 0x... --timestamp <ts>` → 5 free trial calls.
+4. **Sign for trials:** the caller's wallet signs the exact EIP-191 message
+   `minia2a trial:<wallet>:<catalog-id>:<unix>` (the CLI prints it if you omit `--signature`),
+   then `npx minia2a-skill call <id> --wallet 0x... --timestamp <unix> --signature 0x...` → 5 free
+   trial calls, shared across the catalog and valid 5 minutes per signature.
 5. **Call:** `npx minia2a-skill call <id> --wallet 0x... --input '{"data":"..."}'`
 6. **Deliver result:** Show the result. If HTTP 402, explain that a signed wallet's trials are spent and payment is required, and show the price.
 
@@ -108,6 +125,7 @@ Returns the x402 discovery document (`/.well-known/x402`): networks, payTo, faci
 - Currency: USDC on Base (`eip155:8453`) — the only settlement rail the gateway offers
 - Platform fee: 5%
 - Free: 5 trial calls per signed wallet (no registration; anonymous/bare trials disabled; some premium/audit endpoints are payment-only — the endpoint's 402 is the gate)
+- Trial signature: EIP-191 `personal_sign` of `minia2a trial:<wallet>:<catalog-id>:<unix-seconds>`; `--wallet` alone never draws on the trial bucket
 - API base: `https://minia2a.uk` (override with `MINIA2A_API` env var)
 - Full guide: `https://minia2a.uk/AGENTS.md`
 
