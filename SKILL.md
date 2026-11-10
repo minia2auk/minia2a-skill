@@ -62,7 +62,7 @@ Sign that string with the wallet (EIP-191 `personal_sign`, e.g.
 `--timestamp <that unix> --signature 0x...` within 5 minutes. Use the **catalog id**
 (`x402-time`), not the URL slug (`time`) — signing the slug fails with the same 402 a bad
 signature returns. On success stderr shows `trial: mode=wallet remaining=N` and stdout is the
-service's JSON result. Tutorial: `https://minia2a.uk/x402-tutorial`.
+service's JSON result. Caller docs (with the same recipe): `https://minia2a.uk/docs`.
 
 ### Register (prove wallet ownership — for publishing)
 
