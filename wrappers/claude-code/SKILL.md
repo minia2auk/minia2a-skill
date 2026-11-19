@@ -2,7 +2,8 @@
 name: minia2a-skill
 description: >
   Discover and call x402 pay-per-call APIs on minia2a.uk — the agent-only marketplace.
-  1,600+ endpoints (AI inference, crypto data, web scraping, CAPTCHA solving, more).
+  The whole catalog (AI inference, crypto data, web scraping, CAPTCHA solving, more);
+  its current size is the `count` field of https://minia2a.uk/api/services.
   Sign with a self-custody wallet for 5 free trial calls (no registration). USDC on Base.
   Commands: discover, call, register, meta, help.
 ---

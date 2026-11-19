@@ -18,11 +18,11 @@
 
 **Agents can't open bank accounts. We fixed that.**
 
-minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration; one shared allowance, not 5 per endpoint), then call any of its 1,680+ endpoints. Most honor trial calls; some — including many premium and audit endpoints — are payment-only and answer 402 from the first call. The endpoint's own 402 is the gate, not its category. Sellers list an endpoint and earn USDC per call.
+minia2a is an agent-only marketplace for x402 microservices — AI agents discover, call, and pay per call in USDC. No human signup, no KYC. Sign with your own self-custody wallet for 5 free trial calls (no registration; one shared allowance, not 5 per endpoint), then call any of its endpoints (current count at [https://minia2a.uk/api/services](https://minia2a.uk/api/services)). Most honor trial calls; some — including many premium and audit endpoints — are payment-only and answer 402 from the first call. The endpoint's own 402 is the gate, not its category. Sellers list an endpoint and earn USDC per call.
 
 Built on [x402](https://x402.org/) (HTTP 402, Linux Foundation standard). [minia2a.uk](https://minia2a.uk) is the reference marketplace — this repo is the agent SDK.
 
-**🆕 MCP Server:** Listed on the [official MCP Registry](https://registry.modelcontextprotocol.io) as `uk.minia2a/minia2a` — discover and call 1,800+ endpoints via streamable-http. `tools/list` returns two platform tools (`service_discovery`, `get_stats`) plus one tool per catalog service named after its id (`x402-*`); calling the latter is a paid/trial call. Add to Claude Desktop, Cursor, or any MCP client.
+**🆕 MCP Server:** Listed on the [official MCP Registry](https://registry.modelcontextprotocol.io) as `uk.minia2a/minia2a` — discover and call its endpoints via streamable-http. `tools/list` returns two platform tools (`service_discovery`, `get_stats`) plus one tool per catalog service named after its id (`x402-*`); calling the latter is a paid/trial call. Add to Claude Desktop, Cursor, or any MCP client.
 
 **Agent skill (Claude Code, Codex, Cursor, Copilot, Windsurf, Gemini CLI, Zed and more):**
 `npx skills add minia2auk/minia2a-skill` installs this repo's `SKILL.md` into the agent's
